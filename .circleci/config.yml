@@ -1,0 +1,177 @@
+# version: 2.1
+
+
+
+# jobs:
+#   my_job:
+#     docker:
+#       - image: circleci/node:13.8.0
+#     steps:
+#       - print_pipeline_id
+
+# workflows:
+#   my_workflow:
+#     jobs:
+#       - my_job
+
+# Use the latest 2.1 version of CircleCI pipeline process engine.
+# See: https://circleci.com/docs/2.0/configuration-reference
+version: 2.1
+# Define a job to be invoked later in a workflow.
+# See: https://circleci.com/docs/2.0/configuration-reference/#jobs
+# commands:
+#   print_pipeline_id:
+#     parameters:
+#       id:
+#         type: string
+#     steps:
+#       # - run: echo ${CIRCLE_WORKFLOW_ID}
+#       - run: echo << parameters.id >>
+jobs:
+  # say-hello:
+    # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
+    # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
+    # docker:
+    #   - image: cimg/base:stable
+    # Add steps to the job
+    # See: https://circleci.com/docs/2.0/configuration-reference/#steps
+  #   steps:
+  #     - checkout
+  #     - run:
+  #         name: "Say hello"
+  #         command: "echo Hello, World!"
+  build:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - run: npm i
+      - save_cache:
+        key: "npm-packages"
+        paths:
+          - /src/node_modules
+      - run:
+          name: "Build"
+          command: |       
+            npm run lint
+  test:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_Cache:
+          keys:
+            - "npm-packages"
+      - run: npm i
+      - run:
+          name: "Test"
+          command: |      
+            npm run test
+  analyze:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_Cache:
+          keys:
+            - "npm-packages"      
+      - run: npm i
+      - run: 
+          name: "Analyze"
+          command: |
+            npm audit
+  # save_hello_world_output:
+  #   docker:
+  #     - image: circleci/node:13.8.0
+  #   steps:
+  #     - run: 
+  #         name: "output.txt"
+  #         command: |
+  #           echo "text to output here" > ~/output.txt
+  #     - persist_to_workspace:
+  #         root: ~/
+  #         paths: 
+  #           - output.txt
+  # print_output_file:
+  #   docker:
+  #     - image: circleci/node:13.8.0
+  #   steps:
+  #     # - checkout
+  #     - attach_workspace:
+  #         # Must be absolute path or relative path from working_directory
+  #         at: ~/ #/workspace
+  #     - run: 
+  #         name: "print_output_file_contents"        
+  #         command: |   
+  #           if [[ `cat ~/output.txt` == "text to output here" ]]; then
+  #             echo "It worked!";
+  #           else
+  #             echo "Nope!"; exit 1
+  #           fi
+  # print_workflow_id_from_command:
+  #   docker:
+  #     - image: circleci/node:13.8.0
+  #   steps:
+  #     - print_pipeline_id:
+  #           id: << pipeline.id >>
+  # handle_error_fail:
+  #   docker:          
+  #     - image: circleci/node:13.8.0
+  #   steps:
+  #     - run: exit 1
+  #     - run:
+  #         name: on error
+  #         command: echo "Hello Fail Error!"
+  #         when: on_fail
+
+# Invoke jobs via workflows
+# See: https://circleci.com/docs/2.0/configuration-reference/#workflows
+workflows:
+  say-hello-workflow:
+    jobs:
+      # # - say-hello
+      # - print_hello
+      # - print_world:
+      #     requires:
+      #       - print_hello
+      # - print_env_var
+      # - save_hello_world_output
+      # - print_output_file:
+      #     requires:
+      #       - save_hello_world_output
+      # - print_workflow_id_from_command
+      # - handle_error_fail
+      - build
+      - test:
+          requires:
+            - build
+      - analyze:
+          requires:
+             - test 
+# # Use the latest 2.1 version of CircleCI pipeline process engine. See: https://circleci.com/docs/2.0/configuration-reference
+# version: 2.1
+# # Use a package of configuration called an orb.
+# orbs:
+#   # Declare a dependency on the welcome-orb
+#   welcome: circleci/welcome-orb@0.4.1
+# # Orchestrate or schedule a set of jobs
+# jobs:
+#   print_hello:
+#     docker:
+#       - image: circleci/node:13.8.0
+#     steps:
+#       - run: echo hello
+#   print_world:
+#     docker:
+#       - image: circleci/node:13.8.0
+#     steps:
+#       - run: echo world
+# workflows:
+#   # Name the workflow "welcome"
+#   welcome:
+#     # Run the welcome/run job in its own container
+#     jobs:
+#       - print_hello
+#       - print_world:
+#           requires:
+#             - print_hello
