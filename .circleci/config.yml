@@ -51,7 +51,7 @@ jobs:
           paths:
             - /src/node_modules
       - run:
-          name: "Build"
+          name: Build
           command: |       
             npm run lint
   test:
@@ -64,7 +64,7 @@ jobs:
             - "npm-packages"
       - run: npm i
       - run:
-          name: "Test"
+          name: Test
           command: |      
             npm run test
   analyze:
@@ -77,7 +77,7 @@ jobs:
             - "npm-packages"      
       - run: npm i
       - run: 
-          name: "Analyze"
+          name: Analyze
           command: |
             npm audit
   # save_hello_world_output:
